@@ -15,17 +15,19 @@ void DungeonAutoGeneration::Init()
 
 void DungeonAutoGeneration::Generate()
 {
+	int cnt = 0;
 	DungeonRect rect(nullptr, nullptr, nullptr, 0, 0, MAP_WIDTH_MAX, MAP_HEIGHT_MAX);	//Å‘åƒTƒCƒY‚Ì‹æ‰æ
 
 	rect.RandomSplitting();	//•ªŠ„
 	rect.SortMostChild(&m_childList);//•”‰®‚ðì‚é‹æ‰æ‚ð’T‚·
-	
+
 	for (auto it : m_childList)
 	{
-		DungeonRoom room = it->CreateRoom();
+		m_roomList.push_back(it->CreateRoom());
 		
-		room.Generate(m_mapData);
+		m_roomList.at(cnt).Generate(m_mapData);
 		it->Draw(m_mapData);
+		cnt++;
 	}
 }
 

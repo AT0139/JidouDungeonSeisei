@@ -11,6 +11,7 @@ int main(void)
 
 	dag.Init();
 
+
 	dag.Generate();
 
 	dag.Draw();
