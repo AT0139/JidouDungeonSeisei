@@ -5,6 +5,8 @@
 
 DungeonAutoGeneration::DungeonAutoGeneration()
 {
+	//壁で埋める
+	FillAllWall();
 }
 
 void DungeonAutoGeneration::Init()
@@ -21,14 +23,19 @@ void DungeonAutoGeneration::Generate()
 	rect.RandomSplitting();	//分割
 	rect.SortMostChild(&m_childList);//部屋を作る区画を探す
 
+	int c=0;
+	//部屋を作る
 	for (auto it : m_childList)
 	{
+		c++;
 		m_roomList.push_back(it->CreateRoom());
 		
 		m_roomList.at(cnt).Generate(m_mapData);
-		it->Draw(m_mapData);
+		it->Draw(m_mapData, c+ TILE_MAX);
 		cnt++;
 	}
+
+	CreateRoad();
 }
 
 //全てを壁で埋める
@@ -46,6 +53,8 @@ void DungeonAutoGeneration::FillAllWall()
 //描画
 void DungeonAutoGeneration::Draw()
 {
+	system("cls");
+
 	for (int y = 0; y < MAP_HEIGHT_MAX; y++)
 	{
 		for (int x = 0; x < MAP_WIDTH_MAX; x++)
@@ -61,9 +70,132 @@ void DungeonAutoGeneration::Draw()
 			case TILE_DEBUG:
 				std::cout << "★";
 				break;
+			case TILE_DEBUG_ROAD:
+				std::cout << "〇";
+				break;
+			default:
+				std::cout << m_mapData[y][x] - TILE_MAX << " ";
+				break;
 			}
 		}
 		std::cout << std::endl;
 	}
 }
 
+/// <summary>
+/// 道を生成する関数
+/// </summary>
+void DungeonAutoGeneration::CreateRoad()
+{
+	for (int i = 0; i < m_roomList.size() - 1; i++)
+	{
+		//=====================================
+		//デバッグ用
+		Draw();
+		(void)getchar();
+		//=====================================
+
+		DungeonRoom room1 = m_roomList.at(i);
+		DungeonRoom room2 = m_roomList.at(i + 1);
+
+		//部屋がある区画のY座標が同じなら横に並んでいる
+		if (room1.GetParent()->GetY() == room2.GetParent()->GetY())
+		{
+			//境界位置取得
+			int border = room1.GetParent()->GetX() + room1.GetParent()->GetW();
+
+			//部屋から通路を伸ばす位置生成 (上下1マスは生成されないように)
+			int roadY1 = rand() % (room1.GetH() - 2) + room1.GetY() + 1;
+			int roadY2 = rand() % (room2.GetH() - 2) + room2.GetY() + 1;
+
+			//部屋から境界に通路を伸ばす
+			int distance1 = abs(room1.GetX() + room1.GetW() - border);
+			int distance2 = abs(room2.GetX() - border);
+
+			//部屋1つ目のループ
+			for (int x = 0; x < distance1; x++)
+			{
+				m_mapData[roadY1][room1.GetX() + room1.GetW() + x] = TILE_DEBUG;
+			}
+			//部屋2つ目のループ
+			for (int x = 0; x < distance2; x++)
+			{
+				m_mapData[roadY2][room2.GetX() - x - 1] = TILE_DEBUG;
+			}
+
+			//境界線上で道を結ぶ
+
+			int startY;//開始位置取得(Y位置が上の道)
+			if (roadY1 < roadY2)
+				startY = roadY1;
+			else
+				startY = roadY2;
+
+			//道間の距離
+			int roadDistance = abs(roadY1 - roadY2) + 1;
+
+			//マップデータの書き換え
+			for (int y = 0; y < roadDistance; y++)
+			{
+				m_mapData[startY + y][border] = TILE_DEBUG;
+			}
+		}
+		//縦に並んでいる
+		else if (room1.GetParent()->GetX() == room2.GetParent()->GetX())
+		{
+			//境界位置取得
+			int border = room1.GetParent()->GetY() + room1.GetParent()->GetH();
+
+			//部屋から通路を伸ばす位置生成 (左右1マスは生成されないように)
+			int roadX1 = rand() % (room1.GetW() - 2) + room1.GetX() + 1;
+			int roadX2 = rand() % (room2.GetW() - 2) + room2.GetX() + 1;
+
+			//部屋から境界に通路を伸ばす
+			int distance1 = abs(room1.GetY() + room1.GetH() - border);
+			int distance2 = abs(room2.GetY() - border);
+
+			//部屋1つ目のループ
+			for (int y = 0; y < distance1; y++)
+			{
+				m_mapData[room1.GetY() + room1.GetH() + y][roadX1] = TILE_DEBUG_ROAD;
+			}
+			//部屋2つ目のループ
+			for (int y = 0; y < distance2; y++)
+			{
+				m_mapData[room2.GetY() - y - 1][roadX2] = TILE_DEBUG_ROAD;
+			}
+
+			//境界線上で道を結ぶ
+
+			int startX;//開始位置取得(X位置が左の道)
+			if (roadX1 < roadX2)
+				startX = roadX1;
+			else
+				startX = roadX2;
+
+			//道間の距離
+			int roadDistance = abs(roadX1 - roadX2) + 1;
+
+			//マップデータの書き換え
+			for (int x = 0; x < roadDistance; x++)
+			{
+				m_mapData[border][startX + x] = TILE_DEBUG_ROAD;
+			}
+		}
+		//XもYも同じ値がない場合
+		else
+		{
+			//部屋1の親の親区画と部屋2の親区画のY座標が同じなら横に並んでいる
+			if (room1.GetParent()->GetParent()->GetY() == room2.GetParent()->GetY())
+			{
+				//境界位置取得
+				int border = room1.GetParent()->GetX() + room1.GetParent()->GetW();
+			}
+			//X座標が同じなら縦に並んでいる
+			else
+			{
+
+			}
+		}
+	}
+}

@@ -69,8 +69,8 @@ void DungeonRect::RandomSplitting()
 
 	if (isSplit)
 	{
-		auto child = m_child[0];
-		child->RandomSplitting();
+		m_child[0]->RandomSplitting();
+		m_child[1]->RandomSplitting();
 	}
 }
 
@@ -101,18 +101,37 @@ void DungeonRect::SortMostChild(std::vector<DungeonRect*>* mostChildList)
 /// <returns>ì¬‚³‚ê‚½•”‰®ƒNƒ‰ƒX</returns>
 DungeonRoom DungeonRect::CreateRoom()
 {
-	int temp = m_w;
-	int tempy = m_y;
-
-	int w = rand() % (m_w - MIN_ROOM_SIZE) + MIN_ROOM_SIZE;
-	int h = rand() % (m_h - MIN_ROOM_SIZE) + MIN_ROOM_SIZE;
-	int x = m_x + rand() % (m_w - w);
-	int y = m_y + rand() % (m_h - h);
+	int w = rand() % (m_w - MIN_ROOM_SIZE - 4) + MIN_ROOM_SIZE;
+	int h = rand() % (m_h - MIN_ROOM_SIZE - 4) + MIN_ROOM_SIZE;
+	int x = m_x + rand() % (m_w - w - 2) + 2;
+	int y = m_y + rand() % (m_h - h - 2) + 2;
 
 	return DungeonRoom(this,x, y, w, h);
+}
+
+/// <summary>
+/// ‚±‚Ì‹æ‰æ‚Ì•ªŠ„Œ³‚ğ’T‚·ŠÖ”
+/// </summary>
+/// <param name="rect"></param>
+/// <returns></returns>
+bool DungeonRect::FindAncestor(DungeonRect* rect)
+{
+	if (this == rect)
+		return true;
+	else if (m_parent == nullptr)
+		return false;
+	else if (m_parent == rect)
+		return true;
+	else
+		return m_parent->FindAncestor(rect);
 }
 
 void DungeonRect::Draw(int mapData[][MAP_WIDTH_MAX])
 {
 	mapData[m_y][m_x] = TILE_DEBUG;
+}
+
+void DungeonRect::Draw(int mapData[][MAP_WIDTH_MAX],int num)
+{
+	mapData[m_y][m_x] = num;
 }
