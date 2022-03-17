@@ -14,6 +14,12 @@ public:
 
 	void Generate(int mapData[][MAP_WIDTH_MAX]);
 
+	DungeonRect* GetParent() { return m_parentRect; }
+	int GetX() { return m_x; }
+	int GetY() { return m_y; }
+	int GetW() { return m_w; }
+	int GetH() { return m_h; }
+
 private:
 	DungeonRect* m_parentRect;	//‚±‚Ì•”‰®‚Í‚Ç‚Ì‹æ‰æ‚Ì’†‚É‚ ‚é‚©
 

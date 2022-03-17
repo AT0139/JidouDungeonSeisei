@@ -24,21 +24,29 @@ public:
 
 	~DungeonRect();
 
-	void RandomSplitting();
+	DungeonRoom CreateRoom();
 
+	void RandomSplitting();
 	void SortMostChild(std::vector<DungeonRect*>* mostChildList);
 
-	DungeonRoom CreateRoom();
-	
+	DungeonRect** GetChild() { return m_child; }
+	DungeonRect* GetParent() { return m_parent; }
+	int GetX() { return m_x; }
+	int GetY() { return m_y; }
+	int GetW() { return m_w; }
+	int GetH() { return m_h; }
+
+	bool FindAncestor(DungeonRect* rect);
+
 	void Draw(int mapData[][MAP_WIDTH_MAX]);
+	void Draw(int mapData[][MAP_WIDTH_MAX], int num);
 
 private:
-	const int MIN_RECT = 5;	//最小区画サイズ
-	const int MIN_ROOM_SIZE = 2;	//最小部屋サイズ
+	const int MIN_RECT = 10;	//最小区画サイズ
+	const int MIN_ROOM_SIZE = 3;	//最小部屋サイズ
 
 	bool SplitRectX(int splitX);
 	bool SplitRectY(int splitY);
-
 
 	int m_x, m_y;//区画左上座標
 	int m_w, m_h;//区画の高さ、幅
