@@ -30,7 +30,8 @@ public:
 
 private:
 	void CreateRoad();
-	void CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2);
+	void CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool isHorizontal);
+	bool IsHorizontal(DungeonRect* rect1, DungeonRect* rect2);
 	void FillAllWall();
 
 	int m_mapData[MAP_HEIGHT_MAX][MAP_WIDTH_MAX];	//2次元配列マップデータ
