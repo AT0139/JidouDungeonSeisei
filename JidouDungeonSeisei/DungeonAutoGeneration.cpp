@@ -68,7 +68,7 @@ void DungeonAutoGeneration::Draw()
 				std::cout << "¡";
 				break;
 			case TILE_DEBUG:
-				std::cout << "š";
+				std::cout << "Z";
 				break;
 			case TILE_DEBUG_ROAD:
 				std::cout << "Z";
