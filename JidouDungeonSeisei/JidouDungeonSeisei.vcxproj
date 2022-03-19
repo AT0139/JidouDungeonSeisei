@@ -142,12 +142,14 @@
     <ClCompile Include="DungeonAutoGeneration.cpp" />
     <ClCompile Include="DungeonRect.cpp" />
     <ClCompile Include="DungeonRoom.cpp" />
+    <ClCompile Include="DungeonTile.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DungeonAutoGeneration.h" />
     <ClInclude Include="DungeonRect.h" />
     <ClInclude Include="DungeonRoom.h" />
+    <ClInclude Include="DungeonTile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

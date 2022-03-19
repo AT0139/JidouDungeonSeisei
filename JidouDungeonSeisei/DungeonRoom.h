@@ -5,6 +5,7 @@ class DungeonRect;
 
 /// <summary>
 /// ダンジョン内の部屋を管理するクラス
+/// 区画の中に部屋がある
 /// </summary>
 class DungeonRoom
 {
@@ -12,7 +13,7 @@ public:
 	DungeonRoom(DungeonRect* parent, int x, int y, int w, int h) :m_parentRect(parent), m_x(x), m_y(y), m_w(w), m_h(h) {}
 	DungeonRoom() = delete;
 
-	void Generate(int mapData[][MAP_WIDTH_MAX]);
+	void Generate(int mapData[][TILE_WIDTH_MAX]);
 
 	DungeonRect* GetParent() { return m_parentRect; }
 	int GetX() { return m_x; }

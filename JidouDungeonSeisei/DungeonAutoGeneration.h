@@ -2,21 +2,21 @@
 
 #include <vector>
 
-#define MAP_WIDTH_MAX  50		//マップ横最大値
-#define MAP_HEIGHT_MAX  50		//マップ縦最大値
+#define TILE_WIDTH_MAX 30
+#define TILE_HEIGHT_MAX 30
+#define MAP_WIDTH_MAX  80		//マップ横最大値
+#define MAP_HEIGHT_MAX  80		//マップ縦最大値
 
-class DungeonRect;
-class DungeonRoom;
+class DungeonTile;
 
-enum DUNGEON_TILE
+enum DUNGEON_MAPCHIP
 {
-	TILE_NONE,
-	TILE_WALL,
-	TILE_DEBUG,
-	TILE_DEBUG_ROAD,
+	MAPCHIP_NONE,
+	MAPCHIP_WALL,
+	MAPCHIP_DEBUG,
+	MAPCHIP_DEBUG_ROAD,
 
-
-	TILE_MAX,
+	MAPCHIP_MAX,
 };
 
 class DungeonAutoGeneration
@@ -29,13 +29,7 @@ public:
 	void Draw();
 
 private:
-	void CreateRoad();
-	void CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool isHorizontal);
-	bool IsHorizontal(DungeonRect* rect1, DungeonRect* rect2);
 	void FillAllWall();
 
 	int m_mapData[MAP_HEIGHT_MAX][MAP_WIDTH_MAX];	//2次元配列マップデータ
-
-	std::vector<DungeonRect*> m_childList;		//部屋を作る子リスト
-	std::vector<DungeonRoom> m_roomList;		//部屋リスト
 };

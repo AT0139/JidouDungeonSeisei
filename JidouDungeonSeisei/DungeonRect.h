@@ -38,8 +38,8 @@ public:
 
 	bool FindAncestor(DungeonRect* rect);
 
-	void Draw(int mapData[][MAP_WIDTH_MAX]);
-	void Draw(int mapData[][MAP_WIDTH_MAX], int num);
+	void Draw(int mapData[][TILE_WIDTH_MAX]);
+	void Draw(int mapData[][TILE_WIDTH_MAX], int num);
 
 private:
 	const int MIN_RECT = 10;	//ç≈è¨ãÊâÊÉTÉCÉY
