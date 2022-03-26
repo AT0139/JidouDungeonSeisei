@@ -15,7 +15,7 @@ public:
 
 	void Generate(int mapData[][TILE_WIDTH_MAX]);
 
-	DungeonRect* GetParent() { return m_parentRect; }
+	DungeonRect* GetParentRect() { return m_parentRect; }
 	int GetX() { return m_x; }
 	int GetY() { return m_y; }
 	int GetW() { return m_w; }

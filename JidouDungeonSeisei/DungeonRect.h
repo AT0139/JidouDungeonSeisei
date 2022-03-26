@@ -15,13 +15,11 @@ class DungeonRect
 {
 public:
 	DungeonRect() = delete;
-
 	DungeonRect(DungeonRect* parent, DungeonRect* child1, DungeonRect* child2, int x, int y, int w, int h)
 		:m_parent(parent), m_x(x), m_y(y), m_w(w), m_h(h) {
 		m_child[0] = child1;
 		m_child[1] = child2;
 	}
-
 	~DungeonRect();
 
 	DungeonRoom CreateRoom();
@@ -42,8 +40,8 @@ public:
 	void Draw(int mapData[][TILE_WIDTH_MAX], int num);
 
 private:
-	const int MIN_RECT = 10;	//最小区画サイズ
-	const int MIN_ROOM_SIZE = 3;	//最小部屋サイズ
+	static const int MIN_RECT = 10;		//最小区画サイズ
+	static const int MIN_ROOM_SIZE = 3;	//最小部屋サイズ
 
 	bool SplitRectX(int splitX);
 	bool SplitRectY(int splitY);

@@ -6,6 +6,11 @@
 
 DungeonTile::DungeonTile()
 {
+	isUpRoad = false;
+	isDownRoad = false;
+	isLeftRoad = false;
+	isRightRoad = false;
+
 	for (int y = 0; y < TILE_HEIGHT_MAX; y++)
 	{
 		for (int x = 0; x < TILE_WIDTH_MAX; x++)
@@ -59,6 +64,79 @@ void DungeonTile::MapWriting(int mapData[][MAP_WIDTH_MAX], int xPos, int yPos)
 }
 
 /// <summary>
+/// もらった座標に一番近い部屋を探す
+/// </summary>
+/// <param name="x">x座標</param>
+/// <param name="y">y座標</param>
+/// <param name="dir">方向</param>
+/// <returns>一番近い部屋ポインタ</returns>
+DungeonRoom* DungeonTile::SeekNearestRoom(int x,int y, ROAD_DIRECTION dir)
+{
+	int distance = 10000;
+	int cnt = 0;
+	int nearRoomNo = 0;
+	//境界位置
+	switch(dir)
+	{
+	case RIGHT:
+		for (auto it : m_roomList)
+		{
+			int roomdis = x - it.GetX() + it.GetW();
+			if (distance > roomdis)
+			{
+				nearRoomNo = cnt;
+				distance = roomdis;
+			}
+			cnt++;
+		}
+		return &m_roomList.at(nearRoomNo);
+	case LEFT:
+		for (auto it : m_roomList)
+		{
+			int roomdis = it.GetX() - x;
+			if (distance > roomdis)
+			{
+				nearRoomNo = cnt;
+				distance = roomdis;
+			}
+			cnt++;
+		}
+		return &m_roomList.at(nearRoomNo);
+	case UP:
+		//上側
+		for (auto it : m_roomList)
+		{
+			int roomdis = it.GetY() - y;
+			if (distance > roomdis)
+			{
+				nearRoomNo = cnt;
+				distance = roomdis;
+			}
+			cnt++;
+		}
+		return &m_roomList.at(nearRoomNo);
+	case DOWN:
+		//下側
+		for (auto it : m_roomList)
+		{
+			int roomdis = y - it.GetY() + it.GetH();
+			if (distance > roomdis)
+			{
+				nearRoomNo = cnt;
+				distance = roomdis;
+			}
+			cnt++;
+		}
+		return &m_roomList.at(nearRoomNo);
+	}
+
+	return nullptr;
+}
+
+
+
+
+/// <summary>
 /// 道を生成する関数
 /// </summary>
 void DungeonTile::CreateRoad()
@@ -76,7 +154,7 @@ void DungeonTile::CreateRoad()
 		DungeonRoom* room2 = &m_roomList.at(i + 1);
 
 		//道を作る
-		if (IsHorizontal(room1->GetParent(), room2->GetParent()))
+		if (IsHorizontal(room1->GetParentRect(), room2->GetParentRect()))
 		{
 			CreateRoadWorking(room1, room2, true);
 		}
@@ -98,7 +176,7 @@ void DungeonTile::CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool
 	if (isHorizontal)
 	{
 		//境界位置取得
-		int border = room1->GetParent()->GetX() + room1->GetParent()->GetW();
+		int border = room1->GetParentRect()->GetX() + room1->GetParentRect()->GetW();
 
 		//部屋から通路を伸ばす位置生成 (上下1マスは生成されないように)
 		int roadY1 = rand() % (room1->GetH() - 2) + room1->GetY() + 1;
@@ -111,12 +189,12 @@ void DungeonTile::CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool
 		//部屋1つ目のループ
 		for (int x = 0; x < distance1; x++)
 		{
-			m_tileData[roadY1][room1->GetX() + room1->GetW() + x] = MAPCHIP_DEBUG;
+			m_tileData[roadY1][room1->GetX() + room1->GetW() + x] = MAPCHIP_DEBUG_ROAD;
 		}
 		//部屋2つ目のループ
 		for (int x = 0; x < distance2; x++)
 		{
-			m_tileData[roadY2][room2->GetX() - x - 1] = MAPCHIP_DEBUG;
+			m_tileData[roadY2][room2->GetX() - x - 1] = MAPCHIP_DEBUG_ROAD;
 		}
 
 		//境界線上で道を結ぶ
@@ -133,7 +211,7 @@ void DungeonTile::CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool
 		//マップデータの書き換え
 		for (int y = 0; y < roadDistance; y++)
 		{
-			m_tileData[startY + y][border] = MAPCHIP_DEBUG;
+			m_tileData[startY + y][border] = MAPCHIP_DEBUG_ROAD;
 		}
 	}
 	else
@@ -141,7 +219,7 @@ void DungeonTile::CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool
 		//縦に並んでいる
 
 		//境界位置取得
-		int border = room1->GetParent()->GetY() + room1->GetParent()->GetH();
+		int border = room1->GetParentRect()->GetY() + room1->GetParentRect()->GetH();
 
 		//部屋から通路を伸ばす位置生成 (左右1マスは生成されないように)
 		int roadX1 = rand() % (room1->GetW() - 2) + room1->GetX() + 1;
