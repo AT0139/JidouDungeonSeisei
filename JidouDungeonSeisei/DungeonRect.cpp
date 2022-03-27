@@ -126,12 +126,12 @@ bool DungeonRect::FindAncestor(DungeonRect* rect)
 		return m_parent->FindAncestor(rect);
 }
 
-void DungeonRect::Draw(int mapData[][MAP_WIDTH_MAX])
+void DungeonRect::Draw(int mapData[][TILE_WIDTH_MAX])
 {
-	mapData[m_y][m_x] = TILE_DEBUG;
+	mapData[m_y][m_x] = MAPCHIP_DEBUG;
 }
 
-void DungeonRect::Draw(int mapData[][MAP_WIDTH_MAX],int num)
+void DungeonRect::Draw(int mapData[][TILE_WIDTH_MAX],int num)
 {
 	mapData[m_y][m_x] = num;
 }

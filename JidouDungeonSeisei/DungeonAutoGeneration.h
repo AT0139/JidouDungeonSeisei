@@ -2,21 +2,34 @@
 
 #include <vector>
 
-#define MAP_WIDTH_MAX  50		//マップ横最大値
-#define MAP_HEIGHT_MAX  50		//マップ縦最大値
+#define TILE_WIDTH_MAX 15		//タイル横幅
+#define TILE_HEIGHT_MAX 15		//タイル縦幅
+#define TILE_HORIZONTAL_NUM 3	//タイル横数
+#define TILE_VERTICAL_NUM 3		//タイル縦数
 
-class DungeonRect;
-class DungeonRoom;
+#define MAP_WIDTH_MAX  (TILE_WIDTH_MAX * TILE_HORIZONTAL_NUM)	//マップ横最大値
+#define MAP_HEIGHT_MAX  (TILE_HEIGHT_MAX * TILE_VERTICAL_NUM)	//マップ縦最大値
 
-enum DUNGEON_TILE
+class DungeonTile;
+
+
+enum class ROAD_DIRECTION
 {
-	TILE_NONE,
-	TILE_WALL,
-	TILE_DEBUG,
-	TILE_DEBUG_ROAD,
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT,
+	MAX
+};
 
+enum DUNGEON_MAPCHIP
+{
+	MAPCHIP_NONE,
+	MAPCHIP_WALL,
+	MAPCHIP_DEBUG,
+	MAPCHIP_DEBUG_ROAD,
 
-	TILE_MAX,
+	MAPCHIP_MAX,
 };
 
 class DungeonAutoGeneration
@@ -29,13 +42,13 @@ public:
 	void Draw();
 
 private:
-	void CreateRoad();
-	void CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool isHorizontal);
-	bool IsHorizontal(DungeonRect* rect1, DungeonRect* rect2);
 	void FillAllWall();
+	void ConnectTiles();
+	void CreateRoadTileHorizontal(int x1, int y1, int x2, int y2);
+	void CreateRoadTileVertical(int x1, int y1, int x2, int y2);
+	ROAD_DIRECTION DirectionDetermining(int tileNum);
 
 	int m_mapData[MAP_HEIGHT_MAX][MAP_WIDTH_MAX];	//2次元配列マップデータ
 
-	std::vector<DungeonRect*> m_childList;		//部屋を作る子リスト
-	std::vector<DungeonRoom> m_roomList;		//部屋リスト
+	std::vector<DungeonTile*> m_tileList;			//タイルデータ配列
 };

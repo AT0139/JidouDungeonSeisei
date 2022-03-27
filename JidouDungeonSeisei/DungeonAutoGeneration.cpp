@@ -1,7 +1,8 @@
 #include "DungeonAutoGeneration.h"
+#include "DungeonTile.h"
 #include "DungeonRect.h"
-#include "DungeonRoom.h"
 #include <iostream>
+
 
 DungeonAutoGeneration::DungeonAutoGeneration()
 {
@@ -17,25 +18,18 @@ void DungeonAutoGeneration::Init()
 
 void DungeonAutoGeneration::Generate()
 {
-	int cnt = 0;
-	DungeonRect rect(nullptr, nullptr, nullptr, 0, 0, MAP_WIDTH_MAX, MAP_HEIGHT_MAX);	//最大サイズの区画
-
-	rect.RandomSplitting();	//分割
-	rect.SortMostChild(&m_childList);//部屋を作る区画を探す
-
-	int c=0;
-	//部屋を作る
-	for (auto it : m_childList)
+	//タイル生成
+	for (int y = 0; y < TILE_VERTICAL_NUM; y++)
 	{
-		c++;
-		m_roomList.push_back(it->CreateRoom());
-		
-		m_roomList.at(cnt).Generate(m_mapData);
-		it->Draw(m_mapData, c+ TILE_MAX);
-		cnt++;
+		for (int x = 0; x < TILE_HORIZONTAL_NUM; x++)
+		{
+			DungeonTile* tile = new DungeonTile();
+			tile->Generate();
+			tile->MapWriting(m_mapData, TILE_WIDTH_MAX * x, TILE_HEIGHT_MAX * y);
+			m_tileList.push_back(tile);
+		}
 	}
-
-	CreateRoad();
+	ConnectTiles();
 }
 
 //全てを壁で埋める
@@ -45,10 +39,277 @@ void DungeonAutoGeneration::FillAllWall()
 	{
 		for (int x = 0; x < MAP_WIDTH_MAX; x++)
 		{
-			m_mapData[y][x] = TILE_WALL;
+			m_mapData[y][x] = MAPCHIP_WALL;
 		}
 	}
 }
+
+/// <summary>
+/// タイル同士を道で結ぶ関数
+/// </summary>
+void DungeonAutoGeneration::ConnectTiles()
+{
+	int room1Y = 0;
+	int room2Y = 0;
+	int room1X = 0;
+	int room2X = 0;
+	int temp = 0;
+	int border = 0;
+	int cor = 0;
+
+	DungeonRoom* room1;
+	DungeonRoom* room2;
+
+	//道なしタイルの決定
+	//for (int i = 0; i < roadNum; i++)
+	//{
+	//	int nonRoadTile = rand() % (TILE_HORIZONTAL_NUM* TILE_VERTICAL_NUM);
+	//}
+
+	for (int y = 0; y < TILE_VERTICAL_NUM; y++)
+	{
+		for (int x = 0; x < TILE_HORIZONTAL_NUM; x++)
+		{
+			//=====================================
+			//デバッグ用
+			//道を1つ1つ生成させる
+			//Draw();
+			//(void)getchar();
+			//=====================================
+			
+			//タイル番号
+			int tileNum = x + (y * TILE_HORIZONTAL_NUM);
+
+			//道なしタイル番号と同じならcontinue
+			//if (tileNum == roadNum)
+			//	continue;
+
+
+			//道を出す方向決め
+			ROAD_DIRECTION dir = DirectionDetermining(tileNum);
+			
+			//一番近い部屋同士を結ぶ
+			switch (dir)
+			{
+			case ROAD_DIRECTION::UP:
+				//一番近い部屋探し
+				room1 = m_tileList.at(tileNum)->SeekNearestRoom(0, TILE_HEIGHT_MAX * y, ROAD_DIRECTION::UP);
+				m_tileList.at(tileNum)->isUpRoad = true;
+				room2 = m_tileList.at((size_t)tileNum - TILE_HORIZONTAL_NUM)->SeekNearestRoom(0, TILE_HEIGHT_MAX * y, ROAD_DIRECTION::DOWN);
+				m_tileList.at((size_t)tileNum - TILE_HORIZONTAL_NUM)->isDownRoad = true;
+				
+				//その部屋のどのX位置から道を伸ばすか(乱数)
+				room1X = rand() % (room1->GetW() - 2) + room1->GetX() + 1;
+				room2X = rand() % (room2->GetW() - 2) + room2->GetX() + 1;
+
+				cor = tileNum % TILE_HORIZONTAL_NUM;
+				temp = tileNum / TILE_HORIZONTAL_NUM;
+
+				//道を伸ばす
+				CreateRoadTileVertical(room2X + (cor * TILE_WIDTH_MAX), room2->GetY() + room2->GetH() + (temp - 1) * TILE_HEIGHT_MAX,
+					room1X + (cor * TILE_WIDTH_MAX), room1->GetY() + (temp * TILE_HEIGHT_MAX));
+
+				break;
+			case ROAD_DIRECTION::RIGHT:
+				room1 = m_tileList.at(tileNum)->SeekNearestRoom((x + 1) * TILE_WIDTH_MAX, 0, ROAD_DIRECTION::RIGHT);
+				m_tileList.at(tileNum)->isRightRoad = true;
+				room2 = m_tileList.at((size_t)tileNum + 1)->SeekNearestRoom(x * TILE_WIDTH_MAX, 0, ROAD_DIRECTION::LEFT);
+				m_tileList.at((size_t)tileNum + 1)->isLeftRoad = true;
+
+				room1Y = rand() % (room1->GetH() - 2) + room1->GetY() + 1;
+				room2Y = rand() % (room2->GetH() - 2) + room2->GetY() + 1;
+
+				cor = tileNum / TILE_HORIZONTAL_NUM;
+				temp = tileNum % TILE_HORIZONTAL_NUM + 1;
+
+				CreateRoadTileHorizontal(room1->GetX() + room1->GetW() + ((temp - 1)  * TILE_WIDTH_MAX), room1Y + (cor * TILE_HEIGHT_MAX),
+					room2->GetX() + (temp * TILE_WIDTH_MAX), room2Y + (cor * TILE_HEIGHT_MAX));
+
+				break;
+			case ROAD_DIRECTION::DOWN:
+				//一番近い部屋探し
+				room1 = m_tileList.at(tileNum)->SeekNearestRoom(0, TILE_HEIGHT_MAX * y, ROAD_DIRECTION::DOWN);
+				m_tileList.at(tileNum)->isDownRoad = true;
+				room2 = m_tileList.at((size_t)tileNum + TILE_HORIZONTAL_NUM)->SeekNearestRoom(0, TILE_HEIGHT_MAX * y, ROAD_DIRECTION::UP);
+				m_tileList.at((size_t)tileNum + TILE_HORIZONTAL_NUM)->isUpRoad = true;
+				
+				//その部屋のどのX位置から道を伸ばすか(乱数)
+				room1X = rand() % (room1->GetW() - 2) + room1->GetX() + 1;
+				room2X = rand() % (room2->GetW() - 2) + room2->GetX() + 1;
+				
+				cor = tileNum % TILE_HORIZONTAL_NUM;
+				temp = tileNum / TILE_HORIZONTAL_NUM + 1;
+				
+				//道を伸ばす
+				CreateRoadTileVertical(room1X + (cor * TILE_WIDTH_MAX), room1->GetY() + room1->GetH() +(temp - 1) * TILE_HEIGHT_MAX, room2X+ (cor * TILE_WIDTH_MAX),
+					room2->GetY() +  (temp * TILE_HEIGHT_MAX));
+
+				break;
+			case ROAD_DIRECTION::LEFT:
+				//-X方向に道を伸ばす(左に伸ばす)
+				//始点タイル(右側)
+				room1 = m_tileList.at(tileNum)->SeekNearestRoom(x * TILE_WIDTH_MAX, 0, ROAD_DIRECTION::LEFT);
+				m_tileList.at(tileNum)->isLeftRoad = true;
+				//終点タイル(左側) 
+				room2 = m_tileList.at((size_t)tileNum - 1)->SeekNearestRoom(x * TILE_WIDTH_MAX, 0, ROAD_DIRECTION::RIGHT);
+				m_tileList.at((size_t)tileNum - 1)->isRightRoad = true;
+
+				room1Y = rand() % (room1->GetH() - 2) + room1->GetY() + 1;
+				room2Y = rand() % (room2->GetH() - 2) + room2->GetY() + 1;
+
+				cor = tileNum / TILE_HORIZONTAL_NUM;
+				temp = tileNum % TILE_HORIZONTAL_NUM;
+
+				CreateRoadTileHorizontal(room2->GetX() + room2->GetW() + (temp - 1) * TILE_WIDTH_MAX, room2Y + (cor * TILE_HEIGHT_MAX),
+					room1->GetX() + (temp * TILE_WIDTH_MAX), room1Y + (cor * TILE_HEIGHT_MAX));
+
+				break;
+			}
+		}
+	}
+}
+
+/// <summary>
+/// 水平方向の道でタイルを結ぶ関数　部屋1に左にある部屋を渡す
+/// </summary>
+/// <param name="x1">部屋1 X座標</param>
+/// <param name="y1">部屋1 Y座標</param>
+/// <param name="x2">部屋2 X座標</param>
+/// <param name="y2">部屋2 Y座標</param>
+void DungeonAutoGeneration::CreateRoadTileHorizontal(int x1, int y1, int x2, int y2)
+{
+	int borderX = abs((x2 - x1) / 2);
+	//水平方向に道を伸ばす
+	//1つめの座標から境界線へ
+	for (int i = 0; i < borderX; i++)
+	{
+		m_mapData[y1][x1 + i] = MAPCHIP_DEBUG_ROAD;
+	}
+	//2つめの座標から境界線へ
+	for (int i = 0; i < borderX; i++)
+	{
+		m_mapData[y2][x2 - i - 1] = MAPCHIP_DEBUG_ROAD;
+	}
+
+	//境界位置で結ぶ
+	int dis;
+	if (y1 <= y2)
+	{
+		dis = y2 - y1 + 1;	
+		for (int i = 0; i < dis; i++)
+		{
+			m_mapData[y1 + i][x1 + borderX] = MAPCHIP_DEBUG;
+		}
+	}
+	else
+	{
+		dis = y1 - y2 + 1;
+		for (int i = 0; i < dis; i++)
+		{
+			m_mapData[y2 + i][x1 + borderX] = MAPCHIP_DEBUG;
+		}
+	}
+}
+
+/// <summary>
+/// 垂直方向の道でタイルを結ぶ関数　部屋1に上にある部屋を渡す
+/// </summary>
+/// <param name="x1">部屋1 X座標</param>
+/// <param name="y1">部屋1 Y座標</param>
+/// <param name="x2">部屋2 X座標</param>
+/// <param name="y2">部屋2 Y座標</param>
+void DungeonAutoGeneration::CreateRoadTileVertical(int x1, int y1, int x2, int y2)
+{
+	int borderY = abs((y2 - y1) / 2);
+
+	//垂直方向に道を伸ばす
+	//1つめの座標から境界線へ
+	for (int i = 0; i < borderY; i++)
+	{
+		m_mapData[y1 + i][x1] = MAPCHIP_DEBUG_ROAD;
+	}
+	//2つめの座標から境界線へ
+	for (int i = 0; i < borderY; i++)
+	{
+		m_mapData[y2 - i - 1][x2] = MAPCHIP_DEBUG_ROAD;
+	}
+
+	//境界位置で結ぶ
+	int dis;
+	if (x1 <= x2)
+	{
+		dis = x2 - x1 + 1;
+		for (int i = 0; i < dis; i++)
+		{
+			m_mapData[y1 + borderY][x1 + i] = MAPCHIP_DEBUG;
+		}
+	}
+	else
+	{
+		dis = x1 - x2 + 1;
+		for (int i = 0; i < dis; i++)
+		{
+			m_mapData[y1 + borderY][x2 + i] = MAPCHIP_DEBUG;
+		}
+	}
+}
+
+/// <summary>
+/// 道を伸ばす方向をランダムで返す関数
+/// </summary>
+/// <param name="tileNum">道を伸ばす始点のタイル番号</param>
+/// <returns>方向</returns>
+ROAD_DIRECTION DungeonAutoGeneration::DirectionDetermining(int tileNum)
+{
+	ROAD_DIRECTION dir = ROAD_DIRECTION::UP;
+	bool isDecide = false;
+	
+	int randDir = rand() % 4;
+	while (!isDecide)
+	{
+		switch (randDir)
+		{
+		case 0:
+			if (!(tileNum <= TILE_HORIZONTAL_NUM - 1) && !m_tileList.at(tileNum)->isUpRoad)
+			{
+				dir = ROAD_DIRECTION::UP;
+				isDecide = true;
+				break;
+			}
+			randDir++;
+			break;
+		case 1:
+			if (!(tileNum % TILE_HORIZONTAL_NUM == TILE_HORIZONTAL_NUM - 1) && !m_tileList.at(tileNum)->isRightRoad)
+			{
+				dir = ROAD_DIRECTION::RIGHT;
+				isDecide = true;
+				break;
+			}
+			randDir++;
+			break;
+		case 2:
+			if (!(tileNum / TILE_HORIZONTAL_NUM >= TILE_VERTICAL_NUM - 1) && !m_tileList.at(tileNum)->isDownRoad)
+			{
+				dir = ROAD_DIRECTION::DOWN;
+				isDecide = true;
+				break;
+			}
+			randDir++;
+			break;
+		case 3:
+			if (!(tileNum % TILE_HORIZONTAL_NUM == 0) && !m_tileList.at(tileNum)->isLeftRoad)
+			{
+				dir = ROAD_DIRECTION::LEFT;
+				isDecide = true;
+				break;
+			}
+			randDir = 0;
+			break;
+		}
+	}
+	return dir;
+}
+
 
 //描画
 void DungeonAutoGeneration::Draw()
@@ -61,20 +322,20 @@ void DungeonAutoGeneration::Draw()
 		{
 			switch (m_mapData[y][x])
 			{
-			case TILE_NONE:
+			case MAPCHIP_NONE:
 				std::cout << "  ";
 				break;
-			case TILE_WALL:
+			case MAPCHIP_WALL:
 				std::cout << "■";
 				break;
-			case TILE_DEBUG:
-				std::cout << "〇";
+			case MAPCHIP_DEBUG:
+				std::cout << "★";
 				break;
-			case TILE_DEBUG_ROAD:
+			case MAPCHIP_DEBUG_ROAD:
 				std::cout << "〇";
 				break;
 			default:
-				std::cout << m_mapData[y][x] - TILE_MAX -1 << " ";
+				std::cout << m_mapData[y][x] - MAPCHIP_MAX -1 << " ";
 				break;
 			}
 		}
@@ -82,151 +343,5 @@ void DungeonAutoGeneration::Draw()
 	}
 }
 
-/// <summary>
-/// 道を生成する関数
-/// </summary>
-void DungeonAutoGeneration::CreateRoad()
-{
-	for (int i = 0; i < m_roomList.size() - 1; i++)
-	{
-		//=====================================
-		//デバッグ用
-		//道を1つ1つ生成させる
-		//Draw();
-		//(void)getchar();
-		//=====================================
 
-		DungeonRoom* room1 = &m_roomList.at(i);
-		DungeonRoom* room2 = &m_roomList.at(i + 1);
 
-		//道を作る
-		if (IsHorizontal(room1->GetParent(),room2->GetParent()))
-		{
-			CreateRoadWorking(room1, room2, true);
-		}
-		else
-		{
-			CreateRoadWorking(room1, room2, false);
-		}
-	}
-}
-
-/// <summary>
-/// 実際に道を作る処理をしている関数
-/// </summary>
-/// <param name="room1">部屋クラス1</param>
-/// <param name="room2">部屋クラス2/param>
-/// <param name="isHorizontal">横に並んでいるならtrue</param>
-void DungeonAutoGeneration::CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool isHorizontal)
-{
-	if(isHorizontal)
-	{
-		//境界位置取得
-		int border = room1->GetParent()->GetX() + room1->GetParent()->GetW();
-
-		//部屋から通路を伸ばす位置生成 (上下1マスは生成されないように)
-		int roadY1 = rand() % (room1->GetH() - 2) + room1->GetY() + 1;
-		int roadY2 = rand() % (room2->GetH() - 2) + room2->GetY() + 1;
-
-		//部屋から境界に通路を伸ばす
-		int distance1 = abs(room1->GetX() + room1->GetW() - border);
-		int distance2 = abs(room2->GetX() - border);
-
-		//部屋1つ目のループ
-		for (int x = 0; x < distance1; x++)
-		{
-			m_mapData[roadY1][room1->GetX() + room1->GetW() + x] = TILE_DEBUG;
-		}										  
-		//部屋2つ目のループ
-		for (int x = 0; x < distance2; x++)
-		{
-			m_mapData[roadY2][room2->GetX() - x - 1] = TILE_DEBUG;
-		}						   
-
-		//境界線上で道を結ぶ
-
-		int startY;//開始位置取得(Y位置が上の道)
-		if (roadY1 < roadY2)
-			startY = roadY1;
-		else
-			startY = roadY2;
-
-		//道間の距離
-		int roadDistance = abs(roadY1 - roadY2) + 1;
-
-		//マップデータの書き換え
-		for (int y = 0; y < roadDistance; y++)
-		{
-			m_mapData[startY + y][border] = TILE_DEBUG;
-		}
-	}
-	else
-	{
-		//縦に並んでいる
-
-		//境界位置取得
-		int border = room1->GetParent()->GetY() + room1->GetParent()->GetH();
-
-		//部屋から通路を伸ばす位置生成 (左右1マスは生成されないように)
-		int roadX1 = rand() % (room1->GetW() - 2) + room1->GetX() + 1;
-		int roadX2 = rand() % (room2->GetW() - 2) + room2->GetX() + 1;
-
-		//部屋から境界に通路を伸ばす
-		int distance1 = abs(room1->GetY() + room1->GetH() - border);
-		int distance2 = abs(room2->GetY() - border);
-
-		//部屋1つ目のループ
-		for (int y = 0; y < distance1; y++)
-		{
-			m_mapData[room1->GetY() + room1->GetH() + y][roadX1] = TILE_DEBUG_ROAD;
-		}
-		//部屋2つ目のループ
-		for (int y = 0; y < distance2; y++)
-		{
-			m_mapData[room2->GetY() - y - 1][roadX2] = TILE_DEBUG_ROAD;
-		}
-
-		//境界線上で道を結ぶ
-
-		int startX;//開始位置取得(X位置が左の道)
-		if (roadX1 < roadX2)
-			startX = roadX1;
-		else
-			startX = roadX2;
-
-		//道間の距離
-		int roadDistance = abs(roadX1 - roadX2) + 1;
-
-		//マップデータの書き換え
-		for (int x = 0; x < roadDistance; x++)
-		{
-			m_mapData[border][startX + x] = TILE_DEBUG_ROAD;
-		}
-	}
-}
-
-/// <summary>
-/// 区画がどの縦横どちらに並んでいるのかを返す関数
-/// </summary>
-/// <param name="rect1">区画1</param>
-/// <param name="rect2">区画2</param>
-/// <returns>横に並んでいたらtrue</returns>
-bool DungeonAutoGeneration::IsHorizontal(DungeonRect* rect1, DungeonRect* rect2)
-{
-	//部屋がある区画のY座標が同じなら
-	if (rect1->GetY() == rect2->GetY())
-	{
-		//横に並んでいる
-		return true;
-	}
-	else if (rect1->GetX() == rect2->GetX())
-	{
-		//縦に並んでいる
-		return false;
-	}
-	else
-	{
-		//どちらも違うので再帰的に同じのがあるか探す
-		IsHorizontal(rect1->GetParent(), rect2);
-	}
-}
