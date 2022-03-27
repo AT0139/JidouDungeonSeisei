@@ -73,59 +73,54 @@ void DungeonTile::MapWriting(int mapData[][MAP_WIDTH_MAX], int xPos, int yPos)
 DungeonRoom* DungeonTile::SeekNearestRoom(int x,int y, ROAD_DIRECTION dir)
 {
 	int distance = 10000;
-	int cnt = 0;
 	int nearRoomNo = 0;
 	//ã´äEà íu
 	switch(dir)
 	{
-	case RIGHT:
-		for (auto it : m_roomList)
+	case ROAD_DIRECTION::RIGHT:
+		for (int i = 0; i < m_roomList.size(); ++i)
 		{
-			int roomdis = x - it.GetX() + it.GetW();
+			int roomdis = x - (m_roomList.at(i).GetX() + m_roomList.at(i).GetW());
 			if (distance > roomdis)
 			{
-				nearRoomNo = cnt;
+				nearRoomNo = i;
 				distance = roomdis;
 			}
-			cnt++;
 		}
 		return &m_roomList.at(nearRoomNo);
-	case LEFT:
-		for (auto it : m_roomList)
+	case ROAD_DIRECTION::LEFT:
+		for (int i = 0; i < m_roomList.size(); ++i)
 		{
-			int roomdis = it.GetX() - x;
+			int roomdis = m_roomList.at(i).GetX() - x;
 			if (distance > roomdis)
 			{
-				nearRoomNo = cnt;
+				nearRoomNo = i;
 				distance = roomdis;
 			}
-			cnt++;
 		}
 		return &m_roomList.at(nearRoomNo);
-	case UP:
+	case ROAD_DIRECTION::UP:
 		//è„ë§
-		for (auto it : m_roomList)
+		for (int i = 0; i < m_roomList.size(); ++i)
 		{
-			int roomdis = it.GetY() - y;
+			int roomdis = m_roomList.at(i).GetY() - y;
 			if (distance > roomdis)
 			{
-				nearRoomNo = cnt;
+				nearRoomNo = i;
 				distance = roomdis;
 			}
-			cnt++;
 		}
 		return &m_roomList.at(nearRoomNo);
-	case DOWN:
+	case ROAD_DIRECTION::DOWN:
 		//â∫ë§
-		for (auto it : m_roomList)
+		for (int i = 0; i < m_roomList.size(); ++i)
 		{
-			int roomdis = y - it.GetY() + it.GetH();
+			int roomdis = y - (m_roomList.at(i).GetY() + m_roomList.at(i).GetH());
 			if (distance > roomdis)
 			{
-				nearRoomNo = cnt;
+				nearRoomNo = i;
 				distance = roomdis;
 			}
-			cnt++;
 		}
 		return &m_roomList.at(nearRoomNo);
 	}

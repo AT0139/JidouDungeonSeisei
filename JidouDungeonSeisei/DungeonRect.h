@@ -40,7 +40,7 @@ public:
 	void Draw(int mapData[][TILE_WIDTH_MAX], int num);
 
 private:
-	static const int MIN_RECT = 10;		//最小区画サイズ
+	static const int MIN_RECT = 8;		//最小区画サイズ
 	static const int MIN_ROOM_SIZE = 3;	//最小部屋サイズ
 
 	bool SplitRectX(int splitX);

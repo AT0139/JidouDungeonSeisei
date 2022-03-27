@@ -25,7 +25,6 @@ public:
 	bool isRightRoad;
 
 	void CreateRoadWorking(DungeonRoom* room1, DungeonRoom* room2, bool isHorizontal);
-
 private:
 	void CreateRoad();
 	bool IsHorizontal(DungeonRect* rect1, DungeonRect* rect2);
