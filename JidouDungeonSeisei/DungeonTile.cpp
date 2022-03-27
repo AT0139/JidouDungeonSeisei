@@ -138,15 +138,18 @@ void DungeonTile::CreateRoad()
 {
 	for (int i = 0; i < m_roomList.size() - 1; i++)
 	{
+
+#ifdef _DEBUG
 		//=====================================
 		//デバッグ用
 		//道を1つ1つ生成させる
 		//Draw();
 		//(void)getchar();
 		//=====================================
+#endif //_DEBUG
 
 		DungeonRoom* room1 = &m_roomList.at(i);
-		DungeonRoom* room2 = &m_roomList.at(i + 1);
+		DungeonRoom* room2 = &m_roomList.at((size_t)i + 1);
 
 		//道を作る
 		if (IsHorizontal(room1->GetParentRect(), room2->GetParentRect()))
