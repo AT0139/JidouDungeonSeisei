@@ -70,13 +70,16 @@ void DungeonAutoGeneration::ConnectTiles()
 	{
 		for (int x = 0; x < TILE_HORIZONTAL_NUM; x++)
 		{
+
+#ifdef _DEBUG
 			//=====================================
 			//デバッグ用
 			//道を1つ1つ生成させる
 			//Draw();
 			//(void)getchar();
 			//=====================================
-			
+#endif //_DEBUG
+
 			//タイル番号
 			int tileNum = x + (y * TILE_HORIZONTAL_NUM);
 
